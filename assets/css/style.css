@@ -169,16 +169,26 @@ main { flex: 1; }
 }
 .alerta-extra i { color: var(--laranja); }
 
-/* Gráficos */
-.grafico { position: relative; height: 260px; }
-.grafico-alto { height: 320px; }
-
-/* Ranking de órgãos */
-.ranking-item + .ranking-item { margin-top: .85rem; }
-.ranking-nome { font-size: .85rem; }
-.ranking-valor { font-size: .85rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-.ranking-item .progress { height: 6px; background: var(--cinza-claro); }
-.ranking-item .progress-bar { background: var(--laranja); }
+/* Pareceres */
+.titulo-secao { font-weight: 600; color: var(--cinza-escuro); }
+.cartao-parecer {
+  --cor-parecer: var(--cinza);
+  --fundo-parecer: var(--cinza-claro);
+  border-top: 4px solid var(--cor-parecer);
+}
+.parecer-aplicavel { --cor-parecer: var(--laranja); --fundo-parecer: var(--laranja-suave); }
+.parecer-atencao { --cor-parecer: var(--cinza-escuro); --fundo-parecer: var(--cinza-claro); }
+.parecer-nao-aplicavel { --cor-parecer: var(--cinza); --fundo-parecer: #f5f5f5; }
+.badge-parecer {
+  background: var(--fundo-parecer);
+  color: var(--cor-parecer);
+  font-weight: 600;
+  font-size: .75rem;
+}
+.parecer-aplicavel .badge-parecer { color: var(--laranja-escuro); }
+.titulo-norma { font-size: .95rem; font-weight: 700; color: var(--cinza-escuro); margin-bottom: .25rem; }
+.orgao-norma { font-size: .8rem; color: var(--cinza); }
+.texto-parecer { font-size: .9rem; }
 
 /* Modal */
 .detalhe-rotulo { font-size: .75rem; text-transform: uppercase; color: var(--cinza); letter-spacing: .03em; }

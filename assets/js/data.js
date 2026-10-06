@@ -1,7 +1,8 @@
 /**
  * Dados de demonstração do DOU.
  * Gera publicações fictícias para os últimos 90 dias (edições regulares e extras).
- * Substitua `DouData.dou` e `DouData.extra` pelos dados reais da sua API mantendo o mesmo formato.
+ * Substitua `DouData.dou`, `DouData.extra` e `DouData.analises` pelos dados reais da sua API mantendo o mesmo formato.
+ * Cada item de `analises` tem o formato { ato, classificacao: 'Aplicável' | 'Atenção' | 'Não aplicável', parecer }.
  */
 const DouData = (() => {
   // Gerador pseudoaleatório com semente fixa: os dados são os mesmos a cada carregamento.
@@ -110,11 +111,40 @@ const DouData = (() => {
 
   // Mais recentes primeiro.
   const ordenar = lista => lista.sort((a, b) => b.data - a.data || a.secao - b.secao || a.pagina - b.pagina);
+  ordenar(dou);
+  ordenar(extra);
+
+  // Pareceres: um por norma encontrada (atos normativos da Seção 1).
+  const PARECERES = {
+    'Aplicável': [
+      'A norma impacta diretamente as operações da empresa. Recomenda-se revisar os procedimentos internos e adequar os controles dentro do prazo de vigência.',
+      'Há obrigações novas aplicáveis ao nosso segmento. Sugere-se comunicar as áreas envolvidas e definir responsáveis pela implementação.'
+    ],
+    'Atenção': [
+      'A norma não gera obrigação imediata, mas sinaliza mudança regulatória relevante. Recomenda-se acompanhar a regulamentação complementar.',
+      'Aplicação depende de interpretação do órgão regulador. Sugere-se consulta ao jurídico antes de qualquer adequação.'
+    ],
+    'Não aplicável': [
+      'A norma trata de matéria alheia às atividades da empresa. Nenhuma ação é necessária.',
+      'O ato produz efeitos apenas no âmbito interno do órgão emissor, sem reflexos para a empresa.'
+    ]
+  };
+  const NORMATIVOS = ['Lei', 'Decreto', 'Portaria', 'Resolução', 'Instrução Normativa'];
+
+  const analises = [...extra, ...dou]
+    .filter(a => a.secao === 1 && NORMATIVOS.includes(a.tipo))
+    .sort((a, b) => b.data - a.data)
+    .slice(0, 12)
+    .map(ato => {
+      const classificacao = sortear(Object.keys(PARECERES));
+      return { ato, classificacao, parecer: sortear(PARECERES[classificacao]) };
+    });
 
   return {
     hoje,
     ORGAOS,
-    dou: ordenar(dou),
-    extra: ordenar(extra)
+    dou,
+    extra,
+    analises
   };
 })();
