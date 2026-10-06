@@ -211,8 +211,9 @@ function criarListagem(prefixo, base, colunas) {
 }
 
 /* ===================== DOU (API) ===================== */
-const API_DOU_NORMAIS = 'http://127.0.0.1:5000/dous/normais';
-const API_DOU_EXTRAS = 'http://127.0.0.1:5000/dous/extras';
+const API_BASE_URL = 'https://matheusdevrumobr.pythonanywhere.com';
+const API_DOU_NORMAIS = `${API_BASE_URL}/dous/normais`;
+const API_DOU_EXTRAS = `${API_BASE_URL}/dous/extras`;
 
 // Tipos de ato reconhecidos no início do título; os mais longos são testados primeiro
 // para que "Despacho Decisório" não seja classificado como "Despacho".
@@ -285,7 +286,7 @@ async function carregarListagem(prefixo, url, { extra = false, nome = 'DOU' } = 
 }
 
 /* ===================== Análise ===================== */
-const API_ANALISES = 'http://127.0.0.1:5000/analises';
+const API_ANALISES = `${API_BASE_URL}/analises`;
 const SEM_RELEVANCIA = 'NADA RELEVANTE';
 
 // "2026-10-06" → Date local (evita o deslocamento de fuso de `new Date('2026-10-06')`).
