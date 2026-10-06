@@ -188,10 +188,19 @@ main { flex: 1; }
 .parecer-aplicavel .badge-parecer { color: var(--laranja-escuro); }
 .titulo-norma { font-size: .95rem; font-weight: 700; color: var(--cinza-escuro); margin-bottom: .25rem; }
 .orgao-norma { font-size: .8rem; color: var(--cinza); }
-.texto-parecer { font-size: .9rem; }
+.texto-parecer { font-size: .9rem; white-space: pre-line; }
+.texto-parecer.colapsado {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.alternar-texto { color: var(--laranja-escuro); font-weight: 600; text-decoration: none; }
+.alternar-texto:hover, .alternar-texto:focus { color: var(--laranja); text-decoration: underline; }
 
 /* Modal */
 .detalhe-rotulo { font-size: .75rem; text-transform: uppercase; color: var(--cinza); letter-spacing: .03em; }
 .detalhe-valor { font-weight: 500; }
+.conteudo-ato { white-space: pre-line; font-size: .9rem; }
 
 .rodape { color: var(--cinza); }

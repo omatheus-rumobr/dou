@@ -28,7 +28,6 @@
   </nav>
 
   <main class="container-fluid px-3 px-lg-4 py-4">
-
     <!-- Abas -->
     <ul class="nav nav-tabs abas mb-4" id="abas" role="tablist">
       <li class="nav-item" role="presentation">
@@ -62,7 +61,7 @@
                 <label class="form-label" for="dou-busca">Buscar</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-search"></i></span>
-                  <input type="search" class="form-control" id="dou-busca" placeholder="Título, ementa ou órgão…">
+                  <input type="search" class="form-control" id="dou-busca" placeholder="Título ou conteúdo…">
                 </div>
               </div>
               <div class="col-6 col-md-3 col-lg-2">
@@ -73,10 +72,6 @@
                 <label class="form-label" for="dou-tipo">Tipo de ato</label>
                 <select class="form-select" id="dou-tipo"><option value="">Todos</option></select>
               </div>
-              <div class="col-12 col-md-6 col-lg-4">
-                <label class="form-label" for="dou-orgao">Órgão</label>
-                <select class="form-select" id="dou-orgao"><option value="">Todos</option></select>
-              </div>
               <div class="col-6 col-md-3 col-lg-2">
                 <label class="form-label" for="dou-de">De</label>
                 <input type="date" class="form-control" id="dou-de">
@@ -85,7 +80,7 @@
                 <label class="form-label" for="dou-ate">Até</label>
                 <input type="date" class="form-control" id="dou-ate">
               </div>
-              <div class="col-12 col-lg-8 d-flex gap-2 justify-content-lg-end">
+              <div class="col-12 d-flex gap-2 justify-content-lg-end">
                 <button class="btn btn-outline-secondary" id="dou-limpar"><i class="bi bi-eraser me-1"></i>Limpar filtros</button>
                 <button class="btn btn-laranja" id="dou-exportar"><i class="bi bi-download me-1"></i>Exportar CSV</button>
               </div>
@@ -106,8 +101,8 @@
                   <th>Edição</th>
                   <th>Seção</th>
                   <th>Título</th>
-                  <th class="d-none d-md-table-cell">Órgão</th>
-                  <th class="d-none d-lg-table-cell">Pág.</th>
+                  <th class="d-none d-md-table-cell">Tipo de ato</th>
+                  <th class="text-center">Link</th>
                 </tr>
               </thead>
               <tbody id="dou-tabela"></tbody>
@@ -137,7 +132,7 @@
                 <label class="form-label" for="extra-busca">Buscar</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-search"></i></span>
-                  <input type="search" class="form-control" id="extra-busca" placeholder="Título, ementa ou órgão…">
+                  <input type="search" class="form-control" id="extra-busca" placeholder="Título ou conteúdo…">
                 </div>
               </div>
               <div class="col-6 col-md-3 col-lg-2">
@@ -148,10 +143,6 @@
                 <label class="form-label" for="extra-tipo">Tipo de ato</label>
                 <select class="form-select" id="extra-tipo"><option value="">Todos</option></select>
               </div>
-              <div class="col-12 col-md-6 col-lg-4">
-                <label class="form-label" for="extra-orgao">Órgão</label>
-                <select class="form-select" id="extra-orgao"><option value="">Todos</option></select>
-              </div>
               <div class="col-6 col-md-3 col-lg-2">
                 <label class="form-label" for="extra-de">De</label>
                 <input type="date" class="form-control" id="extra-de">
@@ -160,7 +151,7 @@
                 <label class="form-label" for="extra-ate">Até</label>
                 <input type="date" class="form-control" id="extra-ate">
               </div>
-              <div class="col-12 col-lg-8 d-flex gap-2 justify-content-lg-end">
+              <div class="col-12 d-flex gap-2 justify-content-lg-end">
                 <button class="btn btn-outline-secondary" id="extra-limpar"><i class="bi bi-eraser me-1"></i>Limpar filtros</button>
                 <button class="btn btn-laranja" id="extra-exportar"><i class="bi bi-download me-1"></i>Exportar CSV</button>
               </div>
@@ -181,8 +172,8 @@
                   <th>Edição</th>
                   <th>Seção</th>
                   <th>Título</th>
-                  <th class="d-none d-md-table-cell">Órgão</th>
-                  <th class="d-none d-lg-table-cell">Pág.</th>
+                  <th class="d-none d-md-table-cell">Tipo de ato</th>
+                  <th class="text-center">Link</th>
                 </tr>
               </thead>
               <tbody id="extra-tabela"></tbody>
@@ -203,7 +194,7 @@
           <span class="badge badge-contagem" id="analise-contagem">0</span>
         </div>
 
-        <div class="row g-4" id="analise-pareceres"></div>
+        <div class="row g-4 align-items-start" id="analise-pareceres"></div>
       </section>
 
     </div>
@@ -223,6 +214,7 @@
         </div>
         <div class="modal-body" id="modal-ato-corpo"></div>
         <div class="modal-footer">
+          <a class="btn btn-outline-secondary d-none" id="modal-ato-link" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right me-1"></i>Abrir no DOU</a>
           <button type="button" class="btn btn-outline-secondary" id="modal-ato-copiar"><i class="bi bi-clipboard me-1"></i>Copiar referência</button>
           <button type="button" class="btn btn-laranja" data-bs-dismiss="modal">Fechar</button>
         </div>

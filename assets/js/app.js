@@ -26,6 +26,7 @@ let atoSelecionado = null;
 
 function abrirAto(ato) {
   atoSelecionado = ato;
+  // Campos ausentes na origem (ex.: órgão e página na API do DOU) são omitidos.
   const campos = [
     ['Data de publicação', fmtData(ato.data)],
     ['Edição', ato.edicao],
@@ -33,7 +34,7 @@ function abrirAto(ato) {
     ['Página', ato.pagina],
     ['Órgão', ato.orgao],
     ['Tipo de ato', ato.tipo]
-  ];
+  ].filter(([, v]) => v != null && v !== '');
   document.getElementById('modal-ato-titulo').textContent = ato.titulo;
   document.getElementById('modal-ato-corpo').innerHTML = `
     <div class="row g-3 mb-3">
@@ -43,15 +44,25 @@ function abrirAto(ato) {
           <div class="detalhe-valor">${escapar(v)}</div>
         </div>`).join('')}
     </div>
-    <div class="detalhe-rotulo">Ementa</div>
-    <p class="mb-0">${escapar(ato.ementa)}</p>`;
+    ${ato.conteudo
+      ? `<div class="detalhe-rotulo">Conteúdo</div>
+         <p class="mb-0 conteudo-ato">${escapar(ato.conteudo)}</p>`
+      : `<div class="detalhe-rotulo">Ementa</div>
+         <p class="mb-0">${escapar(ato.ementa)}</p>`}`;
+
+  const link = document.getElementById('modal-ato-link');
+  link.classList.toggle('d-none', !ato.url);
+  if (ato.url) link.href = ato.url;
+  else link.removeAttribute('href');
+
   modalAto.show();
 }
 
 document.getElementById('modal-ato-copiar').addEventListener('click', async e => {
   if (!atoSelecionado) return;
   const a = atoSelecionado;
-  const ref = `${a.titulo} – ${a.orgao}. Diário Oficial da União, edição ${a.edicao}, ${nomeSecao(a)}, p. ${a.pagina}, ${fmtData(a.data)}.`;
+  const ref = `${[a.titulo, a.orgao].filter(Boolean).join(' – ')}. Diário Oficial da União, edição ${a.edicao}, ${nomeSecao(a)}`
+    + `${a.pagina ? `, p. ${a.pagina}` : ''}, ${fmtData(a.data)}.${a.url ? ` Disponível em: ${a.url}` : ''}`;
   try {
     await navigator.clipboard.writeText(ref);
     e.currentTarget.innerHTML = '<i class="bi bi-check2 me-1"></i>Copiado!';
@@ -63,14 +74,19 @@ document.getElementById('modal-ato-copiar').addEventListener('click', async e =>
 });
 
 /* ===================== Listagens (DOU e DOU Extra) ===================== */
-function criarListagem(prefixo, base) {
+// `colunas` define as células finais de cada linha e o layout do CSV (ver COLUNAS_DOU).
+function criarListagem(prefixo, base, colunas) {
   const el = id => document.getElementById(`${prefixo}-${id}`);
+  // Filtros são opcionais: a aba pode não ter todos os campos (ex.: DOU sem órgão).
+  const valor = id => el(id)?.value ?? '';
+  const FILTROS = ['busca', 'secao', 'tipo', 'orgao', 'de', 'ate'].filter(id => el(id));
   const POR_PAGINA = 15;
   let pagina = 1;
   let filtrados = base;
 
   // Preenche os selects a partir dos próprios dados.
   const preencher = (select, valores) => {
+    if (!select) return;
     select.insertAdjacentHTML('beforeend', valores.map(v => `<option value="${escapar(v)}">${escapar(v)}</option>`).join(''));
   };
   preencher(el('secao'), [...new Set(base.map(nomeSecao))].sort());
@@ -78,12 +94,12 @@ function criarListagem(prefixo, base) {
   preencher(el('orgao'), [...new Set(base.map(a => a.orgao))].sort((a, b) => a.localeCompare(b, 'pt-BR')));
 
   function filtrar() {
-    const busca = normalizar(el('busca').value.trim());
-    const secao = el('secao').value;
-    const tipo = el('tipo').value;
-    const orgao = el('orgao').value;
-    const de = el('de').value;
-    const ate = el('ate').value;
+    const busca = normalizar(valor('busca').trim());
+    const secao = valor('secao');
+    const tipo = valor('tipo');
+    const orgao = valor('orgao');
+    const de = valor('de');
+    const ate = valor('ate');
 
     filtrados = base.filter(a => {
       const dia = isoLocal(a.data);
@@ -92,7 +108,7 @@ function criarListagem(prefixo, base) {
         && (!orgao || a.orgao === orgao)
         && (!de || dia >= de)
         && (!ate || dia <= ate)
-        && (!busca || normalizar(`${a.titulo} ${a.ementa} ${a.orgao}`).includes(busca));
+        && (!busca || normalizar(`${a.titulo} ${a.conteudo ?? a.ementa} ${a.orgao ?? ''}`).includes(busca));
     });
     pagina = 1;
     render();
@@ -124,9 +140,7 @@ function criarListagem(prefixo, base) {
           <td>
             <div class="titulo-ato">${escapar(a.titulo)}</div>
             <div class="ementa-ato">${escapar(a.ementa)}</div>
-          </td>
-          <td class="d-none d-md-table-cell">${escapar(a.orgao)}</td>
-          <td class="d-none d-lg-table-cell">${a.pagina}</td>
+          </td>${colunas.celulas(a)}
         </tr>`).join('')
       : `<tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-inbox d-block fs-2 mb-2"></i>Nenhuma publicação encontrada com os filtros selecionados.</td></tr>`;
 
@@ -156,9 +170,7 @@ function criarListagem(prefixo, base) {
   }
 
   function exportarCsv() {
-    const cab = ['Data', 'Edição', 'Seção', 'Página', 'Órgão', 'Tipo', 'Título', 'Ementa'];
-    const linhas = filtrados.map(a => [fmtData(a.data), a.edicao, nomeSecao(a), a.pagina, a.orgao, a.tipo, a.titulo, a.ementa]);
-    const csv = [cab, ...linhas]
+    const csv = [colunas.csvCabecalho, ...filtrados.map(colunas.csvLinha)]
       .map(l => l.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';'))
       .join('\r\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
@@ -172,10 +184,10 @@ function criarListagem(prefixo, base) {
   // Eventos
   let atraso;
   el('busca').addEventListener('input', () => { clearTimeout(atraso); atraso = setTimeout(filtrar, 250); });
-  ['secao', 'tipo', 'orgao', 'de', 'ate'].forEach(id => el(id).addEventListener('change', filtrar));
+  FILTROS.filter(id => id !== 'busca').forEach(id => el(id).addEventListener('change', filtrar));
 
   el('limpar').addEventListener('click', () => {
-    ['busca', 'secao', 'tipo', 'orgao', 'de', 'ate'].forEach(id => { el(id).value = ''; });
+    FILTROS.forEach(id => { el(id).value = ''; });
     filtrar();
   });
   el('exportar').addEventListener('click', exportarCsv);
@@ -188,6 +200,7 @@ function criarListagem(prefixo, base) {
   });
 
   const abrirLinha = e => {
+    if (e.target.closest('a')) return; // links externos da linha não abrem o modal
     const linha = e.target.closest('tr[data-id]');
     if (linha) abrirAto(base.find(a => a.id === Number(linha.dataset.id)));
   };
@@ -197,50 +210,172 @@ function criarListagem(prefixo, base) {
   render();
 }
 
-/* ===================== Análise ===================== */
-const CLASSES_PARECER = {
-  'Aplicável': { classe: 'parecer-aplicavel', icone: 'bi-exclamation-circle-fill' },
-  'Atenção': { classe: 'parecer-atencao', icone: 'bi-eye-fill' },
-  'Não aplicável': { classe: 'parecer-nao-aplicavel', icone: 'bi-check-circle-fill' }
+/* ===================== DOU (API) ===================== */
+const API_DOU_NORMAIS = 'http://127.0.0.1:5000/dous/normais';
+const API_DOU_EXTRAS = 'http://127.0.0.1:5000/dous/extras';
+
+// Tipos de ato reconhecidos no início do título; os mais longos são testados primeiro
+// para que "Despacho Decisório" não seja classificado como "Despacho".
+const TIPOS_ATO = [
+  'Ato Declaratório Executivo', 'Despacho Decisório', 'Pauta de Julgamento', 'Instrução Normativa',
+  'Medida Provisória', 'Aviso de Licitação', 'Extrato de Contrato', 'Portaria', 'Despacho', 'Decisão',
+  'Resolução', 'Retificação', 'Alvará', 'Atos', 'Ato', 'Decreto', 'Lei', 'Edital', 'Extrato', 'Aviso',
+  'Acórdão', 'Deliberação', 'Comunicado', 'Parecer', 'Súmula'
+].sort((a, b) => b.length - a.length);
+
+function tipoDoAto(titulo) {
+  const t = normalizar(titulo.trim());
+  const tipo = TIPOS_ATO.find(tp => new RegExp(`^${normalizar(tp)}(?![a-z])`).test(t));
+  if (tipo) return tipo;
+  const palavra = titulo.trim().split(/[\s\-–,]/)[0];
+  return palavra ? palavra.charAt(0).toUpperCase() + palavra.slice(1).toLowerCase() : 'Outros';
+}
+
+// Converte uma publicação da API para o formato usado pela listagem e pelo modal.
+// `extra` vem do endpoint consultado, sem depender do valor de `tipo` retornado.
+function converterPublicacao(p, extra) {
+  const [ano, mes, dia] = p.pub_date.split('-').map(Number);
+  const conteudo = (p.conteudo ?? '').trim();
+  const linhas = conteudo.split('\n').map(l => l.trim()).filter(Boolean);
+  if (linhas[0] === p.titulo.trim()) linhas.shift(); // o conteúdo costuma repetir o título na 1ª linha
+  return {
+    id: p.id,
+    data: new Date(ano, mes - 1, dia),
+    edicao: p.edicao,
+    secao: String(p.secao).replace(/\D/g, '') || p.secao, // "dou1" → "1"
+    extra,
+    tipo: tipoDoAto(p.titulo),
+    titulo: p.titulo,
+    ementa: linhas.join(' '),
+    conteudo,
+    url: p.url
+  };
+}
+
+const COLUNAS_DOU = {
+  celulas: a => `
+    <td class="d-none d-md-table-cell text-nowrap">${escapar(a.tipo)}</td>
+    <td class="text-center">${a.url
+      ? `<a href="${escapar(a.url)}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary" title="Abrir no DOU" aria-label="Abrir no DOU"><i class="bi bi-box-arrow-up-right"></i></a>`
+      : '—'}</td>`,
+  csvCabecalho: ['Data', 'Edição', 'Seção', 'Tipo', 'Título', 'Conteúdo', 'Link'],
+  csvLinha: a => [fmtData(a.data), a.edicao, nomeSecao(a), a.tipo, a.titulo, a.conteudo, a.url ?? '']
 };
 
-function renderAnalise() {
-  const lista = DouData.analises;
+// Busca as publicações de um endpoint e monta a listagem da aba indicada por `prefixo`.
+async function carregarListagem(prefixo, url, { extra = false, nome = 'DOU' } = {}) {
+  const tabela = document.getElementById(`${prefixo}-tabela`);
+  const mensagem = html => { tabela.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5">${html}</td></tr>`; };
+  mensagem('<div class="spinner-border spinner-border-sm me-2" role="status"></div>Carregando publicações…');
+
+  try {
+    const resposta = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
+    const json = await resposta.json();
+    const base = (json.publicacoes ?? [])
+      .map(p => converterPublicacao(p, extra))
+      .sort((a, b) => b.data - a.data); // mais recentes primeiro (ordem estável para o mesmo dia)
+    criarListagem(prefixo, base, COLUNAS_DOU);
+  } catch (erro) {
+    console.error(`Falha ao carregar o ${nome}:`, erro);
+    mensagem(`<i class="bi bi-exclamation-triangle d-block fs-2 mb-2"></i>Não foi possível carregar as publicações do ${nome}.
+      <div class="mt-3"><button class="btn btn-sm btn-laranja" id="${prefixo}-recarregar"><i class="bi bi-arrow-clockwise me-1"></i>Tentar novamente</button></div>`);
+    document.getElementById(`${prefixo}-recarregar`).addEventListener('click', () => carregarListagem(prefixo, url, { extra, nome }));
+  }
+}
+
+/* ===================== Análise ===================== */
+const API_ANALISES = 'http://127.0.0.1:5000/analises';
+const SEM_RELEVANCIA = 'NADA RELEVANTE';
+
+// "2026-10-06" → Date local (evita o deslocamento de fuso de `new Date('2026-10-06')`).
+const dataIso = iso => {
+  const [ano, mes, dia] = String(iso).slice(0, 10).split('-').map(Number);
+  return new Date(ano, mes - 1, dia);
+};
+
+// Só interessam as análises com resposta preenchida e diferente de "NADA RELEVANTE".
+const analiseRelevante = a => {
+  const resposta = (a.resposta ?? '').trim();
+  return resposta !== '' && resposta.toUpperCase() !== SEM_RELEVANCIA;
+};
+
+const ROTULO_EXPANDIR = 'Ver texto completo<i class="bi bi-chevron-down ms-1"></i>';
+const ROTULO_RECOLHER = 'Recolher<i class="bi bi-chevron-up ms-1"></i>';
+
+function renderAnalise(lista) {
   document.getElementById('analise-contagem').textContent = fmtNum(lista.length);
 
-  const container = document.getElementById('analise-pareceres');
-  container.innerHTML = lista.length
-    ? lista.map(({ ato, classificacao, parecer }) => {
-      const estilo = CLASSES_PARECER[classificacao] || CLASSES_PARECER['Atenção'];
-      return `
+  // Todos os cards começam recolhidos (texto limitado a algumas linhas).
+  document.getElementById('analise-pareceres').innerHTML = lista.length
+    ? lista.map(a => `
       <div class="col-12 col-md-6 col-xl-4">
-        <article class="card cartao cartao-parecer ${estilo.classe} h-100">
+        <article class="card cartao cartao-parecer parecer-aplicavel">
           <div class="card-body d-flex flex-column">
-            <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
-              <span class="badge badge-parecer"><i class="bi ${estilo.icone} me-1"></i>${escapar(classificacao)}</span>
-              <small class="text-muted text-nowrap">${fmtData(ato.data)}</small>
+            <div class="d-flex justify-content-end mb-2">
+              <small class="text-muted text-nowrap"><i class="bi bi-calendar-event me-1"></i>${fmtData(dataIso(a.data_referencia))}</small>
             </div>
-            <h3 class="titulo-norma">${escapar(ato.titulo)}</h3>
-            <div class="orgao-norma mb-3"><i class="bi bi-building me-1"></i>${escapar(ato.orgao)} · ${escapar(nomeSecao(ato))}</div>
-            <div class="detalhe-rotulo">Parecer</div>
-            <p class="texto-parecer mb-3">${escapar(parecer)}</p>
-            <button class="btn btn-sm btn-outline-secondary mt-auto align-self-start" data-id="${ato.id}">
-              <i class="bi bi-file-earmark-text me-1"></i>Ver norma
-            </button>
+            <h3 class="titulo-norma mb-3">${escapar(a.titulo)}</h3>
+            <div class="detalhe-rotulo">Conteúdo</div>
+            <p class="texto-parecer colapsado mb-1">${escapar(a.resposta.trim())}</p>
+            <button type="button" class="btn btn-link btn-sm p-0 mb-3 align-self-start alternar-texto" aria-expanded="false">${ROTULO_EXPANDIR}</button>
+            ${a.url ? `
+            <a href="${escapar(a.url)}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary mt-auto align-self-start">
+              <i class="bi bi-box-arrow-up-right me-1"></i>Ver referência
+            </a>` : ''}
           </div>
         </article>
-      </div>`;
-    }).join('')
-    : '<div class="col-12"><p class="text-muted text-center py-5 mb-0"><i class="bi bi-inbox d-block fs-2 mb-2"></i>Nenhuma norma analisada até o momento.</p></div>';
+      </div>`).join('')
+    : '<div class="col-12"><p class="text-muted text-center py-5 mb-0"><i class="bi bi-inbox d-block fs-2 mb-2"></i>Nenhuma norma relevante encontrada.</p></div>';
 
-  container.addEventListener('click', e => {
-    const botao = e.target.closest('[data-id]');
-    if (botao) abrirAto(lista.find(a => a.ato.id === Number(botao.dataset.id)).ato);
+  ajustarBotoesExpandir();
+}
+
+// Esconde o botão de expandir nos cards cujo texto já cabe inteiro recolhido.
+// Só é possível medir com a aba visível, por isso também roda ao abrir a aba e ao redimensionar.
+function ajustarBotoesExpandir() {
+  document.querySelectorAll('#analise-pareceres .texto-parecer.colapsado').forEach(texto => {
+    if (!texto.offsetParent) return; // aba oculta: não há como medir agora
+    texto.nextElementSibling.classList.toggle('d-none', texto.scrollHeight <= texto.clientHeight + 1);
   });
+}
+
+document.getElementById('analise-pareceres').addEventListener('click', e => {
+  const botao = e.target.closest('.alternar-texto');
+  if (!botao) return;
+  const expandido = botao.previousElementSibling.classList.toggle('colapsado') === false;
+  botao.setAttribute('aria-expanded', expandido);
+  botao.innerHTML = expandido ? ROTULO_RECOLHER : ROTULO_EXPANDIR;
+});
+
+document.getElementById('tab-analise').addEventListener('shown.bs.tab', ajustarBotoesExpandir);
+let atrasoRedimensionar;
+window.addEventListener('resize', () => { clearTimeout(atrasoRedimensionar); atrasoRedimensionar = setTimeout(ajustarBotoesExpandir, 150); });
+
+async function carregarAnalises() {
+  const container = document.getElementById('analise-pareceres');
+  const mensagem = html => { container.innerHTML = `<div class="col-12"><p class="text-muted text-center py-5 mb-0">${html}</p></div>`; };
+  mensagem('<span class="spinner-border spinner-border-sm me-2" role="status"></span>Carregando análises…');
+
+  try {
+    const resposta = await fetch(API_ANALISES, { headers: { Accept: 'application/json' } });
+    if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
+    const json = await resposta.json();
+    // Aceita tanto uma lista direta quanto um objeto que envolva a lista (ex.: { analises: [...] }).
+    const itens = Array.isArray(json) ? json : (Object.values(json).find(Array.isArray) ?? []);
+    renderAnalise(itens
+      .filter(analiseRelevante)
+      .sort((a, b) => String(b.data_referencia).localeCompare(String(a.data_referencia))));
+  } catch (erro) {
+    console.error('Falha ao carregar as análises:', erro);
+    mensagem(`<i class="bi bi-exclamation-triangle d-block fs-2 mb-2"></i>Não foi possível carregar as análises.
+      <span class="d-block mt-3"><button class="btn btn-sm btn-laranja" id="analise-recarregar"><i class="bi bi-arrow-clockwise me-1"></i>Tentar novamente</button></span>`);
+    document.getElementById('analise-recarregar').addEventListener('click', carregarAnalises);
+  }
 }
 
 /* ===================== Inicialização ===================== */
 document.getElementById('data-atualizacao').textContent = fmtData(DouData.hoje);
-criarListagem('dou', DouData.dou);
-criarListagem('extra', DouData.extra);
-renderAnalise();
+carregarListagem('dou', API_DOU_NORMAIS);
+carregarListagem('extra', API_DOU_EXTRAS, { extra: true, nome: 'DOU Extra' });
+carregarAnalises();
