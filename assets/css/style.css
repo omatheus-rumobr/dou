@@ -1,0 +1,187 @@
+:root {
+  --laranja: #FF8200;
+  --laranja-escuro: #D96E00;
+  --laranja-suave: #FFF1E0;
+  --cinza: #6F7072;
+  --cinza-escuro: #3D3E40;
+  --cinza-claro: #ECEDEC;
+
+  --bs-link-color: var(--laranja-escuro);
+  --bs-link-hover-color: var(--laranja);
+  --bs-body-font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background: var(--cinza-claro);
+  color: var(--cinza-escuro);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main { flex: 1; }
+
+/* Cabeçalho */
+.topo {
+  background: var(--cinza-escuro);
+  border-bottom: 4px solid var(--laranja);
+}
+.marca-icone {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--laranja);
+  font-size: 1.25rem;
+}
+.subtitulo {
+  font-size: .75rem;
+  color: rgba(255, 255, 255, .6);
+  line-height: 1;
+}
+
+/* Abas */
+.abas { border-bottom: 2px solid #d6d7d6; gap: .25rem; }
+.abas .nav-link {
+  color: var(--cinza);
+  font-weight: 500;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  background: transparent;
+  padding: .75rem 1.25rem;
+}
+.abas .nav-link:hover { color: var(--laranja-escuro); }
+.abas .nav-link.active {
+  color: var(--laranja-escuro);
+  background: transparent;
+  border-bottom-color: var(--laranja);
+}
+
+/* Cartões */
+.cartao {
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+}
+.cartao .card-header {
+  background: #fff;
+  border-bottom: 1px solid var(--cinza-claro);
+  padding: .9rem 1.25rem;
+  border-radius: 12px 12px 0 0;
+}
+.cartao .card-header h2 { font-weight: 600; color: var(--cinza-escuro); }
+.cartao .card-footer {
+  background: #fff;
+  border-top: 1px solid var(--cinza-claro);
+  border-radius: 0 0 12px 12px;
+}
+
+/* KPIs */
+.kpi {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+  border-left: 4px solid var(--laranja);
+  height: 100%;
+}
+.kpi-rotulo {
+  font-size: .8rem;
+  color: var(--cinza);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.kpi-valor {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--cinza-escuro);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.kpi-valor.texto { font-size: 1.05rem; padding-top: .35rem; }
+.kpi-icone { color: var(--laranja); font-size: 1.4rem; }
+.min-w-0 { min-width: 0; }
+
+/* Formulários e botões */
+.form-label { font-size: .8rem; font-weight: 600; color: var(--cinza); margin-bottom: .3rem; }
+.form-control:focus, .form-select:focus {
+  border-color: var(--laranja);
+  box-shadow: 0 0 0 .2rem rgba(255, 130, 0, .2);
+}
+.btn-laranja {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--laranja);
+  --bs-btn-border-color: var(--laranja);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--laranja-escuro);
+  --bs-btn-hover-border-color: var(--laranja-escuro);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--laranja-escuro);
+  --bs-btn-active-border-color: var(--laranja-escuro);
+  --bs-btn-focus-shadow-rgb: 255, 130, 0;
+}
+
+/* Tabela */
+.tabela thead th {
+  background: #f7f7f7;
+  color: var(--cinza);
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  white-space: nowrap;
+}
+.tabela tbody tr { cursor: pointer; }
+.tabela tbody tr:hover td { background: var(--laranja-suave); }
+.tabela td { font-size: .9rem; }
+.tabela .titulo-ato { font-weight: 600; color: var(--cinza-escuro); }
+.tabela .ementa-ato {
+  color: var(--cinza);
+  font-size: .8rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.badge-secao {
+  background: var(--cinza-claro);
+  color: var(--cinza-escuro);
+  font-weight: 600;
+}
+.badge-extra { background: var(--laranja); color: #fff; }
+.badge-contagem { background: var(--laranja-suave); color: var(--laranja-escuro); font-size: .8rem; }
+
+.pagination {
+  --bs-pagination-color: var(--cinza);
+  --bs-pagination-hover-color: var(--laranja-escuro);
+  --bs-pagination-focus-color: var(--laranja-escuro);
+  --bs-pagination-focus-box-shadow: 0 0 0 .2rem rgba(255, 130, 0, .2);
+  --bs-pagination-active-bg: var(--laranja);
+  --bs-pagination-active-border-color: var(--laranja);
+}
+
+.alerta-extra {
+  background: var(--laranja-suave);
+  color: var(--cinza-escuro);
+  border: 1px solid #ffd3a3;
+}
+.alerta-extra i { color: var(--laranja); }
+
+/* Gráficos */
+.grafico { position: relative; height: 260px; }
+.grafico-alto { height: 320px; }
+
+/* Ranking de órgãos */
+.ranking-item + .ranking-item { margin-top: .85rem; }
+.ranking-nome { font-size: .85rem; }
+.ranking-valor { font-size: .85rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ranking-item .progress { height: 6px; background: var(--cinza-claro); }
+.ranking-item .progress-bar { background: var(--laranja); }
+
+/* Modal */
+.detalhe-rotulo { font-size: .75rem; text-transform: uppercase; color: var(--cinza); letter-spacing: .03em; }
+.detalhe-valor { font-weight: 500; }
+
+.rodape { color: var(--cinza); }

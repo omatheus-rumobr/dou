@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel DOU</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Cabeçalho -->
+  <nav class="navbar navbar-dark topo">
+    <div class="container-fluid px-3 px-lg-4">
+      <span class="navbar-brand d-flex align-items-center gap-2">
+        <span class="marca-icone"><i class="bi bi-journal-text"></i></span>
+        <span>
+          <strong>Painel DOU</strong>
+          <small class="d-block subtitulo">Diário Oficial da União</small>
+        </span>
+      </span>
+      <span class="text-white-50 small d-none d-sm-inline">
+        <i class="bi bi-clock-history me-1"></i>Atualizado em <span id="data-atualizacao">—</span>
+      </span>
+    </div>
+  </nav>
+
+  <main class="container-fluid px-3 px-lg-4 py-4">
+
+    <!-- Abas -->
+    <ul class="nav nav-tabs abas mb-4" id="abas" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-dou" data-bs-toggle="tab" data-bs-target="#pane-dou" type="button" role="tab" aria-controls="pane-dou" aria-selected="true">
+          <i class="bi bi-newspaper me-1"></i>DOU
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-extra" data-bs-toggle="tab" data-bs-target="#pane-extra" type="button" role="tab" aria-controls="pane-extra" aria-selected="false">
+          <i class="bi bi-lightning-charge me-1"></i>DOU Extra
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-analise" data-bs-toggle="tab" data-bs-target="#pane-analise" type="button" role="tab" aria-controls="pane-analise" aria-selected="false">
+          <i class="bi bi-bar-chart-line me-1"></i>Análise DOU
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- ============ ABA 1: DOU ============ -->
+      <section class="tab-pane fade show active" id="pane-dou" role="tabpanel" aria-labelledby="tab-dou" tabindex="0">
+
+        <div class="row g-3 mb-4" id="dou-kpis"></div>
+
+        <div class="card cartao mb-4">
+          <div class="card-body">
+            <div class="row g-3 align-items-end">
+              <div class="col-12 col-lg-4">
+                <label class="form-label" for="dou-busca">Buscar</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input type="search" class="form-control" id="dou-busca" placeholder="Título, ementa ou órgão…">
+                </div>
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="dou-secao">Seção</label>
+                <select class="form-select" id="dou-secao"><option value="">Todas</option></select>
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="dou-tipo">Tipo de ato</label>
+                <select class="form-select" id="dou-tipo"><option value="">Todos</option></select>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <label class="form-label" for="dou-orgao">Órgão</label>
+                <select class="form-select" id="dou-orgao"><option value="">Todos</option></select>
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="dou-de">De</label>
+                <input type="date" class="form-control" id="dou-de">
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="dou-ate">Até</label>
+                <input type="date" class="form-control" id="dou-ate">
+              </div>
+              <div class="col-12 col-lg-8 d-flex gap-2 justify-content-lg-end">
+                <button class="btn btn-outline-secondary" id="dou-limpar"><i class="bi bi-eraser me-1"></i>Limpar filtros</button>
+                <button class="btn btn-laranja" id="dou-exportar"><i class="bi bi-download me-1"></i>Exportar CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card cartao">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="h6 mb-0">Publicações</h2>
+            <span class="badge badge-contagem" id="dou-contagem">0</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 tabela">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Edição</th>
+                  <th>Seção</th>
+                  <th>Título</th>
+                  <th class="d-none d-md-table-cell">Órgão</th>
+                  <th class="d-none d-lg-table-cell">Pág.</th>
+                </tr>
+              </thead>
+              <tbody id="dou-tabela"></tbody>
+            </table>
+          </div>
+          <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <small class="text-muted" id="dou-info"></small>
+            <nav aria-label="Paginação DOU"><ul class="pagination pagination-sm mb-0" id="dou-paginacao"></ul></nav>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ABA 2: DOU EXTRA ============ -->
+      <section class="tab-pane fade" id="pane-extra" role="tabpanel" aria-labelledby="tab-extra" tabindex="0">
+
+        <div class="alert alerta-extra d-flex align-items-center gap-2 mb-4" role="note">
+          <i class="bi bi-info-circle-fill"></i>
+          <span>As edições extras são publicadas fora do horário regular, para atos que exigem divulgação imediata.</span>
+        </div>
+
+        <div class="row g-3 mb-4" id="extra-kpis"></div>
+
+        <div class="card cartao mb-4">
+          <div class="card-body">
+            <div class="row g-3 align-items-end">
+              <div class="col-12 col-lg-4">
+                <label class="form-label" for="extra-busca">Buscar</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input type="search" class="form-control" id="extra-busca" placeholder="Título, ementa ou órgão…">
+                </div>
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="extra-secao">Seção</label>
+                <select class="form-select" id="extra-secao"><option value="">Todas</option></select>
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="extra-tipo">Tipo de ato</label>
+                <select class="form-select" id="extra-tipo"><option value="">Todos</option></select>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <label class="form-label" for="extra-orgao">Órgão</label>
+                <select class="form-select" id="extra-orgao"><option value="">Todos</option></select>
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="extra-de">De</label>
+                <input type="date" class="form-control" id="extra-de">
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="extra-ate">Até</label>
+                <input type="date" class="form-control" id="extra-ate">
+              </div>
+              <div class="col-12 col-lg-8 d-flex gap-2 justify-content-lg-end">
+                <button class="btn btn-outline-secondary" id="extra-limpar"><i class="bi bi-eraser me-1"></i>Limpar filtros</button>
+                <button class="btn btn-laranja" id="extra-exportar"><i class="bi bi-download me-1"></i>Exportar CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card cartao">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="h6 mb-0">Publicações em edição extra</h2>
+            <span class="badge badge-contagem" id="extra-contagem">0</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 tabela">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Edição</th>
+                  <th>Seção</th>
+                  <th>Título</th>
+                  <th class="d-none d-md-table-cell">Órgão</th>
+                  <th class="d-none d-lg-table-cell">Pág.</th>
+                </tr>
+              </thead>
+              <tbody id="extra-tabela"></tbody>
+            </table>
+          </div>
+          <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <small class="text-muted" id="extra-info"></small>
+            <nav aria-label="Paginação DOU Extra"><ul class="pagination pagination-sm mb-0" id="extra-paginacao"></ul></nav>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ABA 3: ANÁLISE DOU ============ -->
+      <section class="tab-pane fade" id="pane-analise" role="tabpanel" aria-labelledby="tab-analise" tabindex="0">
+
+        <div class="d-flex flex-wrap gap-3 align-items-end mb-4">
+          <div>
+            <label class="form-label" for="analise-periodo">Período</label>
+            <select class="form-select" id="analise-periodo">
+              <option value="7">Últimos 7 dias</option>
+              <option value="30" selected>Últimos 30 dias</option>
+              <option value="90">Últimos 90 dias</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" for="analise-fonte">Fonte</label>
+            <select class="form-select" id="analise-fonte">
+              <option value="todas" selected>DOU + DOU Extra</option>
+              <option value="dou">Somente DOU</option>
+              <option value="extra">Somente DOU Extra</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4" id="analise-kpis"></div>
+
+        <div class="row g-4">
+          <div class="col-12 col-xl-8">
+            <div class="card cartao h-100">
+              <div class="card-header"><h2 class="h6 mb-0">Evolução diária de publicações</h2></div>
+              <div class="card-body"><div class="grafico grafico-alto"><canvas id="grafico-evolucao" aria-label="Gráfico de evolução diária de publicações" role="img"></canvas></div></div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-xl-4">
+            <div class="card cartao h-100">
+              <div class="card-header"><h2 class="h6 mb-0">Distribuição por tipo de ato</h2></div>
+              <div class="card-body"><div class="grafico grafico-alto"><canvas id="grafico-tipos" aria-label="Gráfico de distribuição por tipo de ato" role="img"></canvas></div></div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-xl-4">
+            <div class="card cartao h-100">
+              <div class="card-header"><h2 class="h6 mb-0">Publicações por seção</h2></div>
+              <div class="card-body"><div class="grafico"><canvas id="grafico-secoes" aria-label="Gráfico de publicações por seção" role="img"></canvas></div></div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-xl-4">
+            <div class="card cartao h-100">
+              <div class="card-header"><h2 class="h6 mb-0">Média por dia da semana</h2></div>
+              <div class="card-body"><div class="grafico"><canvas id="grafico-semana" aria-label="Gráfico de média de publicações por dia da semana" role="img"></canvas></div></div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-xl-4">
+            <div class="card cartao h-100">
+              <div class="card-header"><h2 class="h6 mb-0">Ranking de órgãos</h2></div>
+              <div class="card-body" id="analise-ranking"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="rodape text-center py-3 small">
+    Painel DOU · Dados de demonstração gerados localmente
+  </footer>
+
+  <!-- Modal de detalhes do ato -->
+  <div class="modal fade" id="modal-ato" tabindex="-1" aria-labelledby="modal-ato-titulo" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h6" id="modal-ato-titulo">Detalhes do ato</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body" id="modal-ato-corpo"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" id="modal-ato-copiar"><i class="bi bi-clipboard me-1"></i>Copiar referência</button>
+          <button type="button" class="btn btn-laranja" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
